@@ -3,7 +3,7 @@ const express = require('express');
 
 const expressLayouts = require('express-ejs-layouts'); // Mengimpor modul express-ejs-layouts
 
-const { loadContact, findContact } = require('./utils/contacts');
+const { loadContact, findContact, addContact } = require('./utils/contacts');
 
 // Menginisialisasi aplikasi Express
 const app = express();
@@ -15,10 +15,14 @@ const port = 3000;
 app.set('view engine', 'ejs');
 
 // built-in middleware
-app.use(express.static('public'))
+app.use(express.static('public'));
 
 // Menggunakan express-ejs-layouts sebagai middleware
 app.use(expressLayouts);
+
+// Menggunakan express.urlencoded() dengan opsi extended yang eksplisit
+app.use(express.urlencoded({ extended: true }));
+
 
 // application level midleware
 app.use((req, res, next) => {
@@ -85,6 +89,22 @@ app.get('/contact', (req, res) => {
         });
     }
 );
+
+// Halaman form tambah data contct
+app.get('/contact/add', (req, res) => {
+    res.render('add-contact', {
+        title: 'Form Tambah Data Contact',
+        layout: 'layout/main-layout'
+    })
+});
+
+// proses data contact
+app.post('/contact', (req, res) => {
+    addContact(req.body);
+    res.redirect('/contact');
+})
+
+// halaman detail contact
 app.get('/contact/:nama', (req, res) => {
     const contact = findContact(req.params.nama); 
     
