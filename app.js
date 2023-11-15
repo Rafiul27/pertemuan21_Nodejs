@@ -3,7 +3,10 @@ const express = require('express');
 
 const expressLayouts = require('express-ejs-layouts'); // Mengimpor modul express-ejs-layouts
 
-const { loadContact, findContact, addContact } = require('./utils/contacts');
+const { loadContact, findContact, addContact, cekDuplikat } = require('./utils/contacts');
+
+const { body, validationResult } = require('express-validator');
+
 
 // Menginisialisasi aplikasi Express
 const app = express();
@@ -99,9 +102,27 @@ app.get('/contact/add', (req, res) => {
 });
 
 // proses data contact
-app.post('/contact', (req, res) => {
-    addContact(req.body);
-    res.redirect('/contact');
+app.post('/contact', [
+    body('nama').custom((value) => {
+        const duplikat = cekDuplikat(value);
+        if(duplikat){
+            throw new Error('Nama contact sudah digunakan!')
+        }
+        return true;
+    })
+], (req, res) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        // return res.status(400).json({ errors: errors.array() });
+        res.render('add-contact', {
+            title: 'Form Tambah Data Contact',
+            layout: 'layout/main-layout',
+            errors: errors.array(),
+        })
+    }else{
+        addContact(req.body);
+        res.redirect('/contact');
+    }
 })
 
 // halaman detail contact
